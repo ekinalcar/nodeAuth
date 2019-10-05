@@ -12,12 +12,13 @@ const User = require("../../models/User");
 // @route POST api/users/register
 // @desc Register user
 // @access Public
-router.post("/register", (req, res) => {
+router.post("/register", async (req, res) => {
   const { errors, isValid } = validateRegisterInput(req.body);
   if (!isValid) {
     return res.status(400).json(errors);
   }
-  User.findOne({ email: req.body.email }).then(user => {
+  const user = await User.findOne({ email: req.body.email });
+  try {
     if (user) {
       return res.status(400).json({ email: "Email already exists" });
     } else {
@@ -26,7 +27,7 @@ router.post("/register", (req, res) => {
         email: req.body.email,
         password: req.body.password
       });
-      bcrypt.genSalt(10, (err, salt) => {
+      await bcrypt.genSalt(10, (err, salt) => {
         bcrypt.hash(newUser.password, salt, (err, hash) => {
           if (err) throw err;
           newUser.password = hash;
@@ -37,20 +38,23 @@ router.post("/register", (req, res) => {
         });
       });
     }
-  });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // @route POST api/users/login
 // @desc Login user and return JWT token
 // @access Public
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   const { errors, isValid } = validateLoginInput(req.body); // Check validation
   if (!isValid) {
     return res.status(400).json(errors);
   }
   const email = req.body.email;
   const password = req.body.password; // Find user by email
-  User.findOne({ email }).then(user => {
+  const user = await User.findOne({ email });
+  try {
     // Check if user exists
     if (!user) {
       return res.status(404).json({ emailnotfound: "Email not found" });
@@ -82,7 +86,9 @@ router.post("/login", (req, res) => {
           .json({ passwordincorrect: "Password incorrect" });
       }
     });
-  });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 module.exports = router;
