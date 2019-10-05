@@ -42,7 +42,6 @@ router.post("/register", async (req, res) => {
     console.log(err);
   }
 });
-
 // @route POST api/users/login
 // @desc Login user and return JWT token
 // @access Public
